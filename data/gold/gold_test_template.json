@@ -1,0 +1,4 @@
+[
+  {"id":"replace-with-case-id","route":"medical","question":"Replace with an expert-reviewed question","relevant_sources":["source.pdf#p1"],"reference_answer":"Expected answer for human review","unanswerable":false},
+  {"id":"negative-case","route":"insurance","question":"A question whose answer is absent from the policy","relevant_sources":[],"reference_answer":"Insufficient evidence","unanswerable":true}
+]

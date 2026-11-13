@@ -1,0 +1,44 @@
+[
+  {
+    "id": "medical-hba1c-001",
+    "route": "medical",
+    "question": "What does HbA1c describe?",
+    "relevant_sources": ["medical_knowledge_demo.pdf#p1"],
+    "reference_answer": "It estimates average blood glucose over roughly the prior two to three months."
+  },
+  {
+    "id": "medication-warning-001",
+    "route": "medication",
+    "question": "What urgent allergy warning is in the amoxicillin demo label?",
+    "relevant_sources": ["medication_label_demo.pdf#p1"],
+    "reference_answer": "Trouble breathing, facial swelling, or severe rash require urgent help."
+  },
+  {
+    "id": "lab-hgb-001",
+    "route": "lab",
+    "question": "Which CBC value is flagged low?",
+    "relevant_sources": ["synthetic_lab_report.pdf#p1"],
+    "reference_answer": "Hemoglobin is flagged low in the synthetic report."
+  },
+  {
+    "id": "discharge-followup-001",
+    "route": "discharge",
+    "question": "When should the patient contact primary care?",
+    "relevant_sources": ["synthetic_discharge_summary.pdf#p1"],
+    "reference_answer": "Within three days."
+  },
+  {
+    "id": "insurance-waiting-001",
+    "route": "insurance",
+    "question": "What is the waiting period for listed pre-existing conditions?",
+    "relevant_sources": ["synthetic_insurance_policy.pdf#p2"],
+    "reference_answer": "Twenty-four months in the fictional policy."
+  },
+  {
+    "id": "insurance-claim-002",
+    "route": "insurance",
+    "question": "Which documents are required for reimbursement?",
+    "relevant_sources": ["synthetic_insurance_policy.pdf#p3"],
+    "reference_answer": "The policy lists the claim form, discharge summary, original bills and receipts, prescriptions, diagnostic reports, ID, and bank details."
+  }
+]

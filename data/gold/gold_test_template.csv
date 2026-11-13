@@ -1,0 +1,3 @@
+id,route,question,relevant_sources,reference_answer
+case-001,medical,Example question,approved_source.pdf#p1,Short expert-reviewed answer
+case-002,insurance,Example policy question,synthetic_policy.pdf#p2,Short policy-grounded answer

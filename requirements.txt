@@ -1,0 +1,8 @@
+streamlit>=1.57,<2
+PyMuPDF>=1.24
+numpy>=1.26
+pandas>=2.2
+python-dotenv>=1.0
+requests>=2.32
+faiss-cpu>=1.8; platform_system != "Windows" or python_version < "3.13"
+pytest>=8.0

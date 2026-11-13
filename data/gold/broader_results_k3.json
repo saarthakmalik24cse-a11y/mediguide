@@ -1,0 +1,282 @@
+{
+  "summary": {
+    "precision_at_k": 0.4523809523809524,
+    "recall_at_k": 0.8571428571428571,
+    "hit_rate": 1.0,
+    "citation_accuracy": 0.9761904761904762,
+    "citation_validity": 1.0,
+    "abstention_correct": 1.0,
+    "cases": 18,
+    "k": 3
+  },
+  "cases": [
+    {
+      "id": "diabetes-definition",
+      "question": "What is diabetes?",
+      "route": "medical",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 0.5,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - Diabetes#p0",
+        "MedlinePlus - Diabetes#p0",
+        "MedlinePlus - Diabetes#p0"
+      ]
+    },
+    {
+      "id": "pressure-definition",
+      "question": "Explain high blood pressure",
+      "route": "medical",
+      "precision_at_k": 0.6666666666666666,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - How to Prevent High Blood Pressure#p0",
+        "MedlinePlus - High Blood Pressure#p0",
+        "MedlinePlus - How to Prevent High Blood Pressure#p0"
+      ]
+    },
+    {
+      "id": "cholesterol-definition",
+      "question": "What is cholesterol?",
+      "route": "medical",
+      "precision_at_k": 0.6666666666666666,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - How to Lower Cholesterol with Diet#p0",
+        "MedlinePlus - Cholesterol#p0",
+        "MedlinePlus - Cholesterol#p0"
+      ]
+    },
+    {
+      "id": "anemia-definition",
+      "question": "What is anemia?",
+      "route": "medical",
+      "precision_at_k": 0.6666666666666666,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - Aplastic Anemia#p0",
+        "MedlinePlus - Aplastic Anemia#p0",
+        "MedlinePlus - Anemia#p0"
+      ]
+    },
+    {
+      "id": "asthma-definition",
+      "question": "What is asthma?",
+      "route": "medical",
+      "precision_at_k": 0.6666666666666666,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - Asthma#p0",
+        "MedlinePlus - Asthma in Children#p0",
+        "MedlinePlus - Asthma in Children#p0"
+      ]
+    },
+    {
+      "id": "thyroid-definition",
+      "question": "What does the thyroid do?",
+      "route": "medical",
+      "precision_at_k": 0.6666666666666666,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - Thyroid Diseases#p0",
+        "MedlinePlus - Hyperthyroidism#p0",
+        "MedlinePlus - Thyroid Diseases#p0"
+      ]
+    },
+    {
+      "id": "dehydration-definition",
+      "question": "What is dehydration?",
+      "route": "medical",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - Dehydration#p0",
+        "MedlinePlus - Dehydration#p0",
+        "MedlinePlus - Dehydration#p0"
+      ]
+    },
+    {
+      "id": "pneumonia-definition",
+      "question": "What is pneumonia?",
+      "route": "medical",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 0.5,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - Pneumonia#p0",
+        "MedlinePlus - Pneumonia#p0",
+        "MedlinePlus - Pneumonia#p0"
+      ]
+    },
+    {
+      "id": "arthritis-definition",
+      "question": "What is arthritis?",
+      "route": "medical",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 0.5,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - Arthritis#p0",
+        "MedlinePlus - Arthritis#p0",
+        "MedlinePlus - Arthritis#p0"
+      ]
+    },
+    {
+      "id": "sleep-definition",
+      "question": "What is insomnia?",
+      "route": "medical",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 0.5,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "MedlinePlus - Insomnia#p0",
+        "MedlinePlus - Insomnia#p0",
+        "MedlinePlus - Insomnia#p0"
+      ]
+    },
+    {
+      "id": "metformin-label",
+      "question": "What is metformin used for?",
+      "route": "medication",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 0.6666666666666666,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "medication_label_demo.pdf#p1",
+        "FDA - Metformin#p0",
+        "FDA - Metformin#p0"
+      ]
+    },
+    {
+      "id": "atorvastatin-label",
+      "question": "What are atorvastatin warnings?",
+      "route": "medication",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "FDA - Atorvastatin#p0",
+        "FDA - Atorvastatin#p0",
+        "FDA - Atorvastatin#p0"
+      ]
+    },
+    {
+      "id": "insurance-wait",
+      "question": "What is the pre-existing condition waiting period?",
+      "route": "insurance",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "synthetic_insurance_policy.pdf#p2"
+      ]
+    },
+    {
+      "id": "insurance-claims",
+      "question": "What documents are required for reimbursement?",
+      "route": "insurance",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "synthetic_insurance_policy.pdf#p3"
+      ]
+    },
+    {
+      "id": "outside-domain",
+      "question": "Explain quantum entanglement",
+      "route": "medical",
+      "precision_at_k": null,
+      "recall_at_k": null,
+      "hit_rate": null,
+      "citation_accuracy": null,
+      "citation_validity": null,
+      "abstention_correct": 1.0,
+      "retrieved": []
+    },
+    {
+      "id": "absent-policy-detail",
+      "question": "What is the maternity sublimit?",
+      "route": "insurance",
+      "precision_at_k": null,
+      "recall_at_k": null,
+      "hit_rate": null,
+      "citation_accuracy": null,
+      "citation_validity": null,
+      "abstention_correct": 1.0,
+      "retrieved": []
+    },
+    {
+      "id": "absent-report-value",
+      "question": "What is my troponin?",
+      "route": "lab",
+      "precision_at_k": null,
+      "recall_at_k": null,
+      "hit_rate": null,
+      "citation_accuracy": null,
+      "citation_validity": null,
+      "abstention_correct": 1.0,
+      "retrieved": []
+    },
+    {
+      "id": "outside-medication",
+      "question": "Explain orbital mechanics",
+      "route": "medication",
+      "precision_at_k": null,
+      "recall_at_k": null,
+      "hit_rate": null,
+      "citation_accuracy": null,
+      "citation_validity": null,
+      "abstention_correct": 1.0,
+      "retrieved": []
+    }
+  ]
+}

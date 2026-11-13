@@ -1,0 +1,20 @@
+[
+  {"id":"diabetes-definition","route":"medical","question":"What is diabetes?","relevant_sources":["MedlinePlus - Diabetes#p0","MedlinePlus - Diabetes Type 1#p0"]},
+  {"id":"pressure-definition","route":"medical","question":"Explain high blood pressure","relevant_sources":["MedlinePlus - High Blood Pressure#p0","MedlinePlus - How to Prevent High Blood Pressure#p0"]},
+  {"id":"cholesterol-definition","route":"medical","question":"What is cholesterol?","relevant_sources":["MedlinePlus - Cholesterol#p0","MedlinePlus - How to Lower Cholesterol with Diet#p0"]},
+  {"id":"anemia-definition","route":"medical","question":"What is anemia?","relevant_sources":["MedlinePlus - Anemia#p0","MedlinePlus - Aplastic Anemia#p0"]},
+  {"id":"asthma-definition","route":"medical","question":"What is asthma?","relevant_sources":["MedlinePlus - Asthma#p0","MedlinePlus - Asthma in Children#p0"]},
+  {"id":"thyroid-definition","route":"medical","question":"What does the thyroid do?","relevant_sources":["MedlinePlus - Thyroid Diseases#p0","MedlinePlus - Hyperthyroidism#p0"]},
+  {"id":"dehydration-definition","route":"medical","question":"What is dehydration?","relevant_sources":["MedlinePlus - Dehydration#p0"]},
+  {"id":"pneumonia-definition","route":"medical","question":"What is pneumonia?","relevant_sources":["MedlinePlus - Pneumonia#p0","MedlinePlus - Pneumocystis Infections#p0"]},
+  {"id":"arthritis-definition","route":"medical","question":"What is arthritis?","relevant_sources":["MedlinePlus - Arthritis#p0","MedlinePlus - Juvenile Arthritis#p0"]},
+  {"id":"sleep-definition","route":"medical","question":"What is insomnia?","relevant_sources":["MedlinePlus - Insomnia#p0","MedlinePlus - Sleep Disorders#p0"]},
+  {"id":"metformin-label","route":"medication","question":"What is metformin used for?","relevant_sources":["FDA - Metformin#p0"]},
+  {"id":"atorvastatin-label","route":"medication","question":"What are atorvastatin warnings?","relevant_sources":["FDA - Atorvastatin#p0"]},
+  {"id":"insurance-wait","route":"insurance","question":"What is the pre-existing condition waiting period?","relevant_sources":["synthetic_insurance_policy.pdf#p2"]},
+  {"id":"insurance-claims","route":"insurance","question":"What documents are required for reimbursement?","relevant_sources":["synthetic_insurance_policy.pdf#p3"]},
+  {"id":"outside-domain","route":"medical","question":"Explain quantum entanglement","relevant_sources":[],"unanswerable":true},
+  {"id":"absent-policy-detail","route":"insurance","question":"What is the maternity sublimit?","relevant_sources":[],"unanswerable":true},
+  {"id":"absent-report-value","route":"lab","question":"What is my troponin?","relevant_sources":[],"unanswerable":true},
+  {"id":"outside-medication","route":"medication","question":"Explain orbital mechanics","relevant_sources":[],"unanswerable":true}
+]

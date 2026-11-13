@@ -1,0 +1,102 @@
+{
+  "summary": {
+    "precision_at_k": 0.3333333333333333,
+    "recall_at_k": 1.0,
+    "hit_rate": 1.0,
+    "citation_accuracy": 0.8333333333333334,
+    "citation_validity": 1.0,
+    "abstention_correct": null,
+    "cases": 6,
+    "k": 3
+  },
+  "cases": [
+    {
+      "id": "medical-hba1c-001",
+      "question": "What does HbA1c describe?",
+      "route": "medical",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 0.5,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "medical_knowledge_demo.pdf#p1",
+        "MedlinePlus - Diabetes Type 1#p0",
+        "MedlinePlus - Diabetes#p0"
+      ]
+    },
+    {
+      "id": "medication-warning-001",
+      "question": "What urgent allergy warning is in the amoxicillin demo label?",
+      "route": "medication",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 0.5,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "medication_label_demo.pdf#p1",
+        "FDA - Ibuprofen#p0",
+        "FDA - Acetaminophen#p0"
+      ]
+    },
+    {
+      "id": "lab-hgb-001",
+      "question": "Which CBC value is flagged low?",
+      "route": "lab",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "synthetic_lab_report.pdf#p1"
+      ]
+    },
+    {
+      "id": "discharge-followup-001",
+      "question": "When should the patient contact primary care?",
+      "route": "discharge",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "synthetic_discharge_summary.pdf#p1"
+      ]
+    },
+    {
+      "id": "insurance-waiting-001",
+      "question": "What is the waiting period for listed pre-existing conditions?",
+      "route": "insurance",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "synthetic_insurance_policy.pdf#p2"
+      ]
+    },
+    {
+      "id": "insurance-claim-002",
+      "question": "Which documents are required for reimbursement?",
+      "route": "insurance",
+      "precision_at_k": 0.3333333333333333,
+      "recall_at_k": 1.0,
+      "hit_rate": 1.0,
+      "citation_accuracy": 1.0,
+      "citation_validity": 1.0,
+      "abstention_correct": null,
+      "retrieved": [
+        "synthetic_insurance_policy.pdf#p3"
+      ]
+    }
+  ]
+}

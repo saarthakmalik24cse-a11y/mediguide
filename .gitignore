@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+*.db
+*.db-*
+*.sqlite*
+data/uploads/
+uploads/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+data/indexes/
+data/mediguide.db
