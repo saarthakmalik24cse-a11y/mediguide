@@ -139,7 +139,14 @@ Start with `GUIDELINE_CHECKLIST.md` for the supplied rubric mapping. `PROJECT_RE
 
 In the app, open **More → AI methods lab** to inspect uniform-cost document planning, CSP scheduling and the typed evidence network. These are educational paperwork tools; their costs and day constraints do not establish insurer rules or approval. The functions are kept separately in `mediguide/planning.py` and `mediguide/knowledge_graph.py` for easy explanation.
 
-# Latest features (0.7.0-demo)
+# Latest health tools (0.8.0-demo)
+
+BMI calculation (chat or calculator), minor-cut first aid, common-illness cards,
+and blood-report PDF/OCR review with supplied-range comparisons and conditional
+food guidance are now included. See [HEALTH_FEATURES.md](HEALTH_FEATURES.md) for
+examples, supported report formatting and important limitations.
+
+## Previous additions (0.7.0-demo)
 
 Question-intent filtering, exact supporting passages, policy-clause progress tracking,
 prescription PDF/OCR review, optional Hindi/Hinglish LLM output, Google OIDC gating,

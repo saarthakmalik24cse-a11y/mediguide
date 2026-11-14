@@ -25,6 +25,12 @@ class RAGService:
         urgent = emergency_message(question)
         if urgent:
             return {"answer": urgent, "citations": [], "results": [], "emergency": True}
+        if self.route == "medical" and source is None:
+            from .health_tools import bmi_chat, cut_answer
+            from .common_health import common_answer
+            for response in (bmi_chat(question, history or []), cut_answer(question), common_answer(question)):
+                if response is not None:
+                    return response
         if not source and self.route in {"patient", "lab", "discharge", "insurance"}:
             sources = {chunk.source for chunk in self.store.chunks}
             if len(sources) > 1:

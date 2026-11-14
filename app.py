@@ -277,6 +277,14 @@ elif page in ROUTES:
     route, description = ROUTES[page]
     st.header(page)
     st.caption(description)
+    if route == "medical":
+        from mediguide.health_tools import render_bmi
+        render_bmi()
+        st.caption("Try: BMI for 55 kg, 160 cm, age 22 · What can I do for a common cold? · I cut my finger with scissors—what should I do?")
+    if route == "lab":
+        with st.expander("Blood-report scan, range review and diet", expanded=True):
+            from mediguide.lab_review import render_lab_review
+            render_lab_review()
     if route in {"patient", "lab", "discharge", "insurance"}:
         with st.expander("Add a document", icon=":material/upload_file:"):
             render_upload(route, "Choose a synthetic/demo PDF")

@@ -1,5 +1,5 @@
 """Visible release identity prevents confusing old and new server processes."""
-VERSION = "0.7.0-demo"
+VERSION = "0.8.0-demo"
 
 
 def readiness():
