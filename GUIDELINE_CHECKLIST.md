@@ -1,6 +1,6 @@
 # End-semester guideline mapping
 
-Reviewed against the supplied three-page Final Guidelines PDF on 11 November 2026.
+Rechecked on 14 November 2026 against the three-page `Final Guidelines.docx (1).pdf`. Its substantive rubric matches the earlier guidelines. Release: 0.5.0-demo. Use SUBMISSION_CHECKLIST.md for the remaining submission gates.
 
 | Requirement | Implemented evidence / written deliverable | Status |
 |---|---|---|

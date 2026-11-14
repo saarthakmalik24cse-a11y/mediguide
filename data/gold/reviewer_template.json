@@ -1,0 +1,4 @@
+[
+  {"id":"clinical-review-001","route":"medical","question":"Replace with a held-out question","source":"Replace with approved reference and page","expected_answer":"Reviewer-authored answer","must_include":[],"must_not_include":[],"expected_abstention":false,"reviewer_name":null,"reviewer_qualification":null,"review_date":null,"clinical_correctness":null,"citation_support":null,"actionability":null,"notes":"Unreviewed template. Do not count this as a passed case."},
+  {"id":"policy-review-001","route":"insurance","question":"Replace with a policy-specific question","source":"Policy version and page","expected_answer":"Reviewer-authored answer with exclusions","must_include":[],"must_not_include":["guaranteed approval"],"expected_abstention":false,"reviewer_name":null,"reviewer_qualification":null,"review_date":null,"clinical_correctness":null,"citation_support":null,"actionability":null,"notes":"Unreviewed template."}
+]

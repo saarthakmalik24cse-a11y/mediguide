@@ -1,6 +1,6 @@
 # MediGuide: Explainable Healthcare Document Assistance and Claim Preparation
 
-End-semester project report content draft, 11 November 2026. Faculty formatting template and student details are pending. This report describes the implemented system, including its limitations.
+End-semester project report content draft, revised 14 November 2026 for release 0.5.0-demo. Faculty formatting template and student details are pending. This report describes the implemented system, including its limitations.
 
 ## Abstract
 
@@ -124,9 +124,9 @@ Hashing embeddings are engineered sparse-feature projections stored densely, not
 
 ## 9. Results and continuous evaluation
 
-Latest verified run: 20 tests passed. Tests cover PDF/chunk search, normalization, emergency keyword behavior, all screen reruns, guided questions, feedback, policy checklist, saved evaluation display, unsupported questions, source filtering, policy replacement, follow-up context, dosage clarification, UCS optimal-plan examples, unsatisfiable CSP cases, semantic-network provenance and interactive AI-lab execution.
+Latest verified run: 58 tests passed. Tests cover PDF/chunk search, normalization, emergency keyword behavior, screen reruns, guided questions, feedback, policy checklist, saved evaluation display, unsupported questions, source filtering, policy replacement, follow-up context, dosage clarification, UCS optimal-plan examples, unsatisfiable CSP cases, semantic-network provenance and interactive AI-lab execution. Additional checks cover question length, cross-document ambiguity, generated citation/number validation and history-storage failure recovery. Passing these tests does not establish clinical correctness.
 
-Broader authored benchmark: 18 questions, including 14 answerable and 4 unsupported cases, offline mode, K=3. Precision@3 = 45.24%; Recall@3 = 85.71%; Hit Rate@3 = 100%; citation-source relevance = 96.43%; citation label validity = 100%; correct abstention on four unsupported cases = 100%.
+Broader authored benchmark rerun on 14 November 2026: 18 questions, including 14 answerable and 4 unsupported cases, offline mode, K=3. Precision@3 = 38.10%; Recall@3 = 75.00%; Hit Rate@3 = 100%; citation-source relevance = 100%; citation label validity = 100%; correct abstention on four unsupported cases = 100%. Raw results: data/gold/final_review_2026_11_14.json. These are development cases, not an independent held-out clinical benchmark. Compared with the previous 45.24% precision and 85.71% recall, exact-topic preference improves citation-source relevance but reduces distinct relevant-page coverage. Do not describe this as improvement on every metric.
 
 Precision counts distinct relevant source/page hits divided by requested K. Recall divides by all annotated relevant source/pages. Hit rate is a binary per-question retrieval success. Citation-source relevance checks whether a cited retrieved source/page is in the relevance annotation. Label validity checks that a cited index resolves. Neither is a measure of clinical claim entailment.
 
@@ -136,7 +136,7 @@ Reproduce:
 
 ```powershell
 python -m pytest -q
-python -m mediguide.evaluation data/gold/broader_gold.json --k 3 --output data/gold/guidelines_results_k3.json
+python -m mediguide.evaluation data/gold/broader_gold.json --k 3 --output data/gold/final_review_2026_11_14.json
 ```
 
 Continuous evaluation procedure: add a regression case for each observed failure; run tests after code changes; save dated benchmark outputs; compare metrics and inspect individual answers. Earlier implementation issues included unrelated iron excerpts, malformed synthetic PDF dashes and UI reload behavior. Current fixes have regression tests, but no invented marks, faculty sign-offs or external validation are claimed.

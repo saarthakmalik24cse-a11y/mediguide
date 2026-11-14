@@ -8,6 +8,12 @@ def normalize_question(text):
                     "haemoglobin": "hemoglobin", "anaemia": "anemia"}
     for original, replacement in replacements.items():
         text = re.sub(r"\b" + re.escape(original) + r"\b", replacement, text, flags=re.I)
+    phrases = {"kya hai": "what is", "kya h": "what is", "क्या है": "what is",
+               "lakshan": "symptoms", "लक्षण": "symptoms", "ilaaj": "treatment",
+               "इलाज": "treatment", "kitne din": "how many days", "दुष्प्रभाव": "side effects",
+               "मधुमेह": "diabetes", "ब्लड प्रेशर": "blood pressure"}
+    for original, replacement in phrases.items():
+        text = re.sub(re.escape(original), replacement, text, flags=re.I)
     return text.strip()
 
 

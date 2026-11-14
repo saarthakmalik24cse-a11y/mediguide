@@ -47,7 +47,7 @@ No local neural training; no claim that FAISS is an LLM.
 
 ## 9 — Results and analysis
 
-Use the current test count and measured results in PROJECT_REPORT.md section 9 and guidelines_results_k3.json.
+Use the current test count (58) and measured results in PROJECT_REPORT.md section 9 and final_review_2026_11_14.json.
 18 authored cases; K=3. Explain low precision alongside high hit rate.
 Citation-source relevance is not medical correctness. The benchmark is small and not independently clinically reviewed.
 

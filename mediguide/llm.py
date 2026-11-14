@@ -6,6 +6,10 @@ import requests
 from .config import settings
 from .models import SearchResult
 from .retrieval import tokens, focus_tokens
+from .answer_intent import matches_intent
+from contextvars import ContextVar
+
+answer_language = ContextVar("answer_language", default="English")
 
 
 SYSTEM = """You are MediGuide, a careful healthcare information assistant.
@@ -37,7 +41,7 @@ def context_text(results: list[SearchResult]) -> str:
 
 class OpenAICompatibleLLM(LLM):
     def answer(self, question: str, results: list[SearchResult], history: list[dict], route: str) -> str:
-        messages = [{"role": "system", "content": SYSTEM}]
+        messages = [{"role": "system", "content": SYSTEM + "\nRespond in " + answer_language.get() + ". Preserve medicine names, units, source labels, and numbers exactly. Give practical next steps only if supported by context. If only part is answerable explicitly say which part is missing."}]
         messages.extend(history[-6:])
         messages.append({"role": "user", "content": f"Route: {route}\nContext:\n{context_text(results)}\n\nQuestion: {question}"})
         response = requests.post(
@@ -64,6 +68,8 @@ class ExtractiveLLM(LLM):
                 sentence = re.sub(r"\s+", " ", sentence).strip()
                 sentence = re.sub(r"\s+([,.;:])", r"\1", sentence)
                 words = set(tokens(sentence))
+                if not matches_intent(question, sentence):
+                    continue
                 overlap = terms & words
                 # Drop web headings, questions, and navigation fragments.
                 if len(sentence) < 15 or not (focus & words) or (sentence.endswith("?") and re.match(r"(what|how|why|when|who|can|does|is|are)\b", sentence, re.I)):

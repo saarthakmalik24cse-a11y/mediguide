@@ -16,7 +16,10 @@ except ImportError:  # pragma: no cover
 
 
 class VectorStore:
-    def __init__(self, route: str, directory: Path = INDEX_DIR):
+    def __init__(self, route: str, directory: Path | None = None):
+        if directory is None:
+            from .privacy import index_path
+            directory = index_path(route)
         self.route = route
         self.directory = directory
         self.directory.mkdir(parents=True, exist_ok=True)
@@ -111,3 +114,8 @@ class VectorStore:
 
     def stats(self) -> dict:
         return {"route": self.route, "chunks": len(self.chunks), "engine": "FAISS" if faiss else "NumPy"}
+
+    def delete_source(self, source: str) -> None:
+        self.chunks = [c for c in self.chunks if c.source != source]
+        self.vectors = self.embedder.embed([c.text for c in self.chunks])
+        self._save()

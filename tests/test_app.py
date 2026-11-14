@@ -6,7 +6,7 @@ from streamlit.testing.v1 import AppTest
 def test_every_page_survives_reload():
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=20).run()
     assert not app.exception
-    for page in ["Home", "Medical knowledge", "Patient document chat", "Lab report explainer", "Discharge assistant", "Medication information", "Insurance guidance", "Feedback", "AI methods lab", "Admin & evaluation"]:
+    for page in ["Home", "Medical knowledge", "Patient document chat", "Lab report explainer", "Discharge assistant", "Medication information", "Insurance guidance", "Feedback", "Demo readiness", "AI methods lab", "Admin & evaluation"]:
         app.button(key=f"nav_{page}").click().run()
         assert not app.exception, page
         app.run()
@@ -70,3 +70,23 @@ def test_actual_chat_iron_question(tmp_path, monkeypatch):
     answer = app.session_state["messages"]["medical:All sources"][-1]["content"]
     assert "8 mg per day" in answer
     assert "dehydration" not in answer.lower()
+
+
+def test_answer_survives_history_storage_failure(monkeypatch):
+    from mediguide import database
+    def unavailable(*args, **kwargs):
+        raise OSError("Simulated storage failure")
+    monkeypatch.setattr(database, "save_message", unavailable)
+    app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=30).run()
+    app.button(key="nav_Medical knowledge").click().run()
+    app.chat_input(key="chat_medical").set_value("daily iron requirement for seniors").run()
+    assert not app.exception
+    assert any("could not be saved" in warning.value for warning in app.warning)
+    assert "8 mg per day" in app.session_state["messages"]["medical:All sources"][-1]["content"]
+
+
+def test_demo_readiness_page():
+    app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=30).run()
+    app.button(key="nav_Demo readiness").click().run()
+    assert not app.exception
+    assert len(app.dataframe[0].value) == 6

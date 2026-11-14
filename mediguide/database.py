@@ -23,7 +23,10 @@ CREATE TABLE IF NOT EXISTS conversations (
 """
 
 
-def connect(path: Path = DB_PATH) -> sqlite3.Connection:
+def connect(path: Path | None = None) -> sqlite3.Connection:
+    if path is None:
+        from .privacy import database_path
+        path = database_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row

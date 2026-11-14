@@ -11,8 +11,11 @@ from mediguide.evaluation import evaluate_cases
 from mediguide.rag import RAGService
 from mediguide.safety import disclaimer
 from mediguide.vectorstore import VectorStore
+from mediguide.release import VERSION, readiness
 
 st.set_page_config(page_title="MediGuide • Your care, made clearer", page_icon=":material/spa:", layout="centered")
+from mediguide.privacy import gate
+is_admin = gate()
 
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
@@ -48,8 +51,11 @@ def home():
     st.title("Your care, made clearer.")
     st.write("Medical words can feel overwhelming. Let's make sense of your reports, medicines and insurance—one question at a time.")
     st.button("Let's talk about your health", type="primary", icon=":material/arrow_forward:", on_click=navigate, args=("Medical knowledge",))
-    st.caption("Source-backed answers · Your documents, explained")
-    st.space("large")
+    st.markdown(":green-badge[Page citations] :blue-badge[Six care modules] :orange-badge[Synthetic-data demo]")
+    with st.expander("New here? A 3-step walkthrough", icon=":material/help:"):
+        st.write("**1 · Choose** a health topic or document module.\n\n**2 · Ask** one focused question, selecting a PDF when needed.\n\n**3 · Verify** the answer against its cited page. Missing evidence is a reason to clarify, not guess.")
+        st.button("Open demo guide", on_click=navigate, args=("Demo readiness",))
+    st.space("small")
     st.subheader("What brings you here?")
     st.caption("Pick one place to start. You can switch whenever you need.")
     titles = ["Understand a health topic", "Read a medical document", "Make sense of lab results", "Plan after-discharge care", "Know your medicine", "Navigate your insurance"]
@@ -59,7 +65,7 @@ def home():
         columns = st.columns(2)
         for offset, col in enumerate(columns):
             title, (_, description) = entries[start + offset]
-            with col, st.container(border=True, height=235):
+            with col, st.container(border=True):
                 st.markdown(f":green[:material/{ICONS[start + offset]}:]")
                 st.markdown(f"**{titles[start + offset]}**")
                 st.caption(descriptions[start + offset])
@@ -103,18 +109,31 @@ def render_citations(citations: list[dict]) -> None:
                 location = f"Page {cite['page']}" if cite["page"] else "Public reference"
                 st.write(f"[{cite['label']}] {cite['source']} · {location}")
                 st.text(cite["excerpt"])
+                for quote in cite.get("supporting_quotes", []):
+                    st.caption("Exact passage used in the answer")
+                    st.code(quote, language=None)
                 if cite.get("url"):
                     st.link_button("Open original source", cite["url"])
                     st.caption(f"Retrieved: {cite.get('retrieved_at', 'unknown')}")
 
 
 def render_chat(route: str, starter: str) -> None:
-    st.caption("Answer checks · 11 Nov v2 · Evidence-based demo, not clinically validated")
+    from mediguide.llm import answer_language, get_llm, ExtractiveLLM
+    language = st.selectbox("Answer language", ["English", "Hindi", "Hinglish"], key="language_" + route)
+    answer_language.set(language)
+    if language != "English" and isinstance(get_llm(), ExtractiveLLM):
+        st.info("Hindi/Hinglish explanations need a configured language model. Offline mode keeps original English evidence; some common Hindi question phrases are supported.")
+    st.caption(f"MediGuide {VERSION} · Check the cited evidence before acting")
     if route == "medication":
         st.caption("Drug sources may describe a specific brand or combination product. Check the ingredients and formulation in the original label; do not treat it as a personal prescription.")
     sources = sorted({c.source for c in VectorStore(route).chunks})
-    with st.expander("Choose your sources", icon=":material/folder_open:"):
+    with st.container(border=True):
         selected = st.selectbox("Search within", ["All sources"] + sources, key=f"source_{route}")
+        st.caption("One patient or policy at a time. Select the exact document when more than one is available." if route in {"patient", "lab", "discharge", "insurance"} else "Answers are limited to the reference library, not a live web search.")
+    if not sources:
+        st.info("This collection is empty. Upload a demo PDF, or run setup_mediguide.bat to prepare the sample library.")
+    if settings.llm_provider != "extractive" and settings.llm_api_key:
+        st.warning("Connected mode sends retrieved text and recent messages to the configured API. Use synthetic documents only.")
     source = None if selected == "All sources" else selected
     key = route + ":" + selected
     messages = st.session_state.messages.setdefault(key, [])
@@ -134,7 +153,10 @@ def render_chat(route: str, starter: str) -> None:
             quick_question = example
     for message in messages:
         with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+            if message["role"] == "assistant":
+                render_answer(message["content"])
+            else:
+                st.markdown(message["content"])
             if message.get("citations"):
                 render_citations(message["citations"])
     question = st.chat_input(starter, key=f"chat_{route}") or quick_question
@@ -151,14 +173,23 @@ def render_chat(route: str, starter: str) -> None:
                 st.error("The answer could not be generated. Please check the local server window and try again.")
                 st.caption(f"Technical detail: {type(exc).__name__}: {exc}")
                 return
-            st.markdown(result["answer"])
+            if result.get("emergency"):
+                st.warning("Urgent-care guidance")
+            elif result.get("abstained"):
+                st.caption("CLARIFICATION NEEDED · Insufficient evidence")
+            else:
+                st.caption("SOURCE-CITED RESPONSE · Not a clinical verification")
+            render_answer(result["answer"])
             if result.get("notice"):
                 st.info(result["notice"])
             render_citations(result["citations"])
             st.caption(disclaimer(route))
         messages.append({"role": "assistant", "content": result["answer"], "citations": result["citations"]})
-        save_message(st.session_state.session_id, "user", question, [], key)
-        save_message(st.session_state.session_id, "assistant", result["answer"], result["citations"], key)
+        try:
+            save_message(st.session_state.session_id, "user", question, [], key)
+            save_message(st.session_state.session_id, "assistant", result["answer"], result["citations"], key)
+        except Exception:
+            st.warning("Your answer is available, but local history could not be saved. Download the conversation before leaving.")
         st.session_state.last_exchange = (question, result["answer"], route)
     if messages:
         transcript = "# MediGuide conversation\n\n" + "\n\n".join(
@@ -168,8 +199,20 @@ def render_chat(route: str, starter: str) -> None:
         st.download_button("Download conversation", transcript, f"mediguide-{route}.md", "text/markdown", key=f"export_{route}")
 
 
+def render_answer(answer):
+    direct, separator, details = answer.partition("\n\n**Relevant details from the sources**\n\n")
+    st.markdown(direct)
+    if separator:
+        with st.expander("Supporting details"):
+            st.markdown(details)
+
+
 def claim_checklist() -> None:
     st.subheader("Claim preparation checklist")
+    selected_policy = st.session_state.get("source_insurance", "All sources")
+    if selected_policy != "All sources":
+        from mediguide.claim_tracker import render_tracker
+        render_tracker(selected_policy)
     st.button("Plan document collection", icon=":material/event_note:", on_click=navigate, args=("AI methods lab",))
     if st.button("Extract requirements from selected policy"):
         selected = st.session_state.get("source_insurance", "All sources")
@@ -199,6 +242,7 @@ def claim_checklist() -> None:
 with st.sidebar:
     st.header("MediGuide", icon=":material/spa:")
     st.caption("A clearer path through your care")
+    st.caption(f"{VERSION} · Local demo")
     st.space("medium")
     page = st.session_state.setdefault("navigation", "Home")
     labels = ["Home", "Ask MediGuide", "My documents", "Lab results", "After discharge", "Medicines", "Insurance"]
@@ -206,6 +250,8 @@ with st.sidebar:
         icon = "home" if index == 0 else ICONS[index-1]
         st.button(labels[index], key=f"nav_{destination}", icon=f":material/{icon}:", type="primary" if page == destination else "tertiary", width="stretch", on_click=navigate, args=(destination,))
     st.space("medium")
+    st.button("Medicine schedule", key="nav_schedule", icon=":material/schedule:", on_click=navigate, args=("Medicine schedule",), width="stretch")
+    st.button("Prescription review", key="nav_ocr", on_click=navigate, args=("Prescription review",), width="stretch")
     with st.expander("Saved conversations"):
         st.caption("Local demo history on this computer")
         saved = st.selectbox("Conversation", ["Choose a conversation"] + saved_sessions())
@@ -218,7 +264,7 @@ with st.sidebar:
             st.session_state.messages = {}
             st.rerun()
     with st.expander("More"):
-        for destination in ("Feedback", "AI methods lab", "Admin & evaluation"):
+        for destination in ("Feedback", "Demo readiness", "AI methods lab", "Settings & privacy") + (("Admin & evaluation",) if is_admin else ()):
             st.button(destination, key=f"nav_{destination}", on_click=navigate, args=(destination,), width="stretch")
         st.caption("Offline source excerpts" if settings.llm_provider == "extractive" or not settings.llm_api_key else "Connected language model")
         st.caption("Educational demo with synthetic patient documents. Clinical decisions belong to your clinician; policy decisions belong to your insurer.")
@@ -264,6 +310,18 @@ elif page in ROUTES:
         }
         render_chat(route, prompts[route])
 
+elif page == "Medicine schedule":
+    from mediguide.schedule_ui import render_schedule
+    render_schedule()
+
+elif page == "Prescription review":
+    from mediguide.ocr_review import render_ocr_review
+    render_ocr_review()
+
+elif page == "Settings & privacy":
+    from mediguide.settings_ui import render_settings
+    render_settings()
+
 elif page == "Feedback":
     st.header("Feedback")
     if "last_exchange" not in st.session_state:
@@ -277,10 +335,23 @@ elif page == "Feedback":
             save_feedback(question, answer, rating, note, route)
             st.success("Feedback saved locally.")
 
+elif page == "Demo readiness":
+    st.header("Ready for your demonstration?", icon=":material/checklist:")
+    st.caption("A practical preflight, not a clinical or security certification.")
+    st.dataframe(readiness(), hide_index=True)
+    with st.container(border=True):
+        st.subheader("Your six-minute walkthrough")
+        st.write("**01 · Ask** a supported health question and open its source.\n\n**02 · Upload** a synthetic lab PDF and check a value against its page.\n\n**03 · Switch** to Insurance, select a policy, and extract claim requirements.\n\n**04 · Explain** UCS, CSP and the evidence graph in the AI methods lab.\n\n**05 · Test** an unsupported question and explain why refusal is correct.")
+        st.button("Explore AI methods", on_click=navigate, args=("AI methods lab",))
+    with st.expander("Before real-world deployment"):
+        st.write("Still required: independent clinical/policy validation, authenticated user isolation, access-controlled admin tools, secure retention/deletion, upload scanning, deployment monitoring and an incident-response process. This local app has shared storage; do not expose it for real patient use.")
 elif page == "AI methods lab":
     from mediguide.coursework_ui import render_coursework
     render_coursework()
 else:
+    if not is_admin:
+        st.error("Administrator access is required.")
+        st.stop()
     st.header("Admin & evaluation")
     admin_tab, eval_tab, audit_tab = st.tabs(["Knowledge upload", "RAG evaluation", "Audit"])
     with admin_tab:

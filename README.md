@@ -139,3 +139,12 @@ Start with `GUIDELINE_CHECKLIST.md` for the supplied rubric mapping. `PROJECT_RE
 
 In the app, open **More → AI methods lab** to inspect uniform-cost document planning, CSP scheduling and the typed evidence network. These are educational paperwork tools; their costs and day constraints do not establish insurer rules or approval. The functions are kept separately in `mediguide/planning.py` and `mediguide/knowledge_graph.py` for easy explanation.
 
+# Latest features (0.7.0-demo)
+
+Question-intent filtering, exact supporting passages, policy-clause progress tracking,
+prescription PDF/OCR review, optional Hindi/Hinglish LLM output, Google OIDC gating,
+private authenticated document/history storage, and scoped deletion controls are available.
+Read [ADVANCED_SETUP.md](ADVANCED_SETUP.md) for configuration and limits.
+Google credentials, an LLM API, and OCR language resources are external setup requirements;
+none are bundled or claimed to have been clinically validated.
+

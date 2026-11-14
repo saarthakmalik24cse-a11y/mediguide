@@ -13,3 +13,7 @@ __pycache__/
 *.pyc
 data/indexes/
 data/mediguide.db
+data/users/
+.test-runs/
+.mypy_cache/
+data/ocr/
