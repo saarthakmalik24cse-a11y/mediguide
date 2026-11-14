@@ -26,6 +26,10 @@ def parse_rows(text: str, page: int) -> tuple[list[dict], list[str]]:
             continue
         match = ROW.fullmatch(line)
         if not match:
+            # Also accept the bundled PDF's parenthesized reference and printed flag.
+            clean = re.sub(r"\s*\((?:demo\s+)?reference\s+(" + NUMBER + r"\s*[-–]\s*" + NUMBER + r")\)\s*(?:[-–—]\s*flagged\s+(?:low|high))?\.?$", r" reference \1", line, flags=re.I)
+            match = ROW.fullmatch(clean)
+        if not match:
             unparsed.append(line)
             continue
         name, value, unit, low, high = match.groups()
@@ -37,6 +41,41 @@ def parse_rows(text: str, page: int) -> tuple[list[dict], list[str]]:
         rows.append({"test": name.strip(), "value": float(value), "unit": unit,
                      "lower": float(low), "upper": float(high), "status": status, "page": page, "evidence": line})
     return rows, unparsed
+
+
+def report_overview(question: str, chunks: list) -> dict | None:
+    if not re.search(r"\b(?:explain|summari[sz]e|review|improve|abnormal|out of range|what (?:is|looks) (?:low|high|wrong))\b", question, re.I):
+        return None
+    if not re.search(r"\b(?:report|results?|values?|improve|abnormal|out of range|what (?:is|looks) (?:low|high|wrong))\b", question, re.I):
+        return None
+    from .health_tools import clarify
+    citations, lines, seen = [], [], set()
+    outside = 0
+    for chunk in chunks:
+        # Join wrapped units and split separate results printed on one PDF line.
+        text = re.sub(r"(?<=\d)\n(?=[A-Za-z%µμ][\w^/%.-]*\s*\()", " ", chunk.text)
+        text = re.sub(r"(\)\s*(?:[-–—]\s*flagged\s+(?:low|high))?)\.? +(?=[A-Za-z][A-Za-z 0-9/-]*:\s*\d)", r"\1\n", text, flags=re.I)
+        rows, _ = parse_rows(text, chunk.page)
+        for row in rows:
+            key = (chunk.page, row["test"], row["value"], row["unit"], row["lower"], row["upper"])
+            if key in seen:
+                continue
+            seen.add(key)
+            label = f"S{len(citations) + 1}"
+            citations.append({"label": label, "source": chunk.source, "page": chunk.page,
+                              "excerpt": row["evidence"]})
+            outside += row["status"] != "Within supplied range"
+            lines.append(f"- **{row['test']}**: {row['value']:g} {row['unit']} "
+                         f"(report range {row['lower']:g}–{row['upper']:g} {row['unit']}). "
+                         f"{row['status']}. [{label}]")
+    if not lines:
+        return clarify("I couldn't reliably pair results with their printed reference ranges. "
+                       "Use Blood-report scan and verify the rows, or ask about a specific test and page.")
+    return {"answer": f"**{outside} of {len(lines)} readable results are outside their printed ranges.**\n\n"
+                      + "\n".join(lines)
+                      + "\n\nReview out-of-range results with the clinician who ordered the report. "
+                        "Other rows and formats may need manual review.",
+            "citations": citations, "results": [], "emergency": False, "abstained": False, "notice": ""}
 
 
 def diet_notes(rows: list[dict]) -> list[tuple[str, str]]:
@@ -107,3 +146,16 @@ def render_lab_review() -> None:
             st.write(text)
             st.link_button("Read the supporting reference", url)
         st.download_button("Download reviewed summary", json.dumps({"status":"User-reviewed range comparison; not a diagnosis", "rows":all_rows,"pages":originals,"diet_notes":diet_notes(all_rows)}, indent=2), "blood-report-review.json")
+        if st.button("Use verified report in chat"):
+            from .config import settings
+            from .documents import chunk_pages
+            from .vectorstore import VectorStore
+            source = "Reviewed: " + (upload.name if upload else "Synthetic blood-report example")
+            # Use a new source when the verified text changes so older chat cannot mix with it.
+            version = hashlib.sha256(json.dumps(originals).encode()).hexdigest()[:12]
+            source = f"{source} [{version}]"
+            verified_pages = [(item["page"], item["reviewed"]) for item in originals]
+            chunks = chunk_pages(verified_pages, source, "lab", settings.chunk_size, settings.chunk_overlap)
+            VectorStore("lab").replace_source(chunks)
+            st.session_state["source_lab"] = source
+            st.success("Verified report selected for chat below.")

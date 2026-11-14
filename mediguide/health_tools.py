@@ -5,6 +5,12 @@ from .models import Chunk, SearchResult
 
 BMI_URL = "https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html"
 CUT_URL = "https://www.nhs.uk/conditions/cuts-and-grazes/"
+BMI_TERM = r"\bbmi\b|body mass index"
+WEIGHT = r"(\d+(?:\.\d+)?)\s*(?:kg|kilograms?)\b"
+HEIGHT_CUE = r"height|(?:cm|feet|ft|inches|m)\b|\d['′]"
+BMI_EVIDENCE = ("Adult BMI is weight in kilograms divided by height in metres squared. "
+                "For ages 20 and older, the healthy-weight BMI category is 18.5 to below 25. "
+                "BMI is a screening measure.")
 
 
 def sourced(answer: str, title: str, url: str, evidence: str, urgent: bool = False) -> dict:
@@ -45,13 +51,43 @@ def bmi_answer(weight: float, cm: float, age: int | None = None, pregnant: bool 
 def bmi_chat(question: str, history: list[dict]) -> dict | None:
     previous = next((m["content"] for m in reversed(history) if m.get("role") == "user"), "")
     q = question.lower()
-    if not (re.search(r"\bbmi\b|body mass index", q) or (re.search(r"\bkg\b", q) and re.search(r"height|cm|feet|ft|inches|\d['′]", q))):
-        if not (re.search(r"\bbmi\b|\bkg\b", previous.lower()) and re.fullmatch(r"(?:i am |age[: ]*)?\d{1,3}(?: years? old)?[.!]?", q)):
+    if (re.search(BMI_TERM, q) and not re.search(r"\d", q)
+            and re.search(r"\b(?:healthy|normal|range|categories)\b", q)):
+        if re.search(r"\b(?:child\w*|teen\w*|pregnan\w*)\b", q):
+            return clarify("Please provide the age and whether pregnancy applies. BMI assessment differs for children, teens and pregnancy.")
+        return sourced("For adults aged 20 and older, the healthy-weight BMI range is "
+                       "**18.5 to below 25 kg/m²**. BMI is a screening measure. "
+                       "Share your weight and height if you want me to calculate it.",
+                       "CDC adult BMI categories", BMI_URL, BMI_EVIDENCE)
+    if "weight" in q and re.search(r"\b(?:range|ranges)\b", q) and ("height" in q or re.search(r"\b(?:cm|feet|ft)\b", q)):
+        if re.search(r"\b(?:child|children|teen|pregnan\w*)\b", q):
+            return clarify("This table applies to adults aged 20+ outside pregnancy. Ask a clinician about the appropriate assessment for children, teens or pregnancy.")
+        heights = [float(value) for value in re.findall(r"(\d+(?:\.\d+)?)\s*cm\b", q)]
+        heights.extend((int(feet) * 12 + int(inches or 0)) * 2.54
+                       for feet, inches in re.findall(r"(\d+)\s*(?:feet|ft)\b(?:\s*(\d{1,2})\s*(?:inches|in)\b)?", q)
+                       if int(inches or 0) < 12)
+        if not heights and re.search(r"\d", q):
+            return clarify("Please write each height as 160 cm or 5 ft 3 in.")
+        heights = heights or list(range(150, 191, 10))
+        if any(not 50 <= cm <= 250 for cm in heights):
+            return clarify("Check the height units. Enter heights between 50 and 250 cm.")
+        table = ["| Height | Approximate weight range |", "|---|---|"]
+        for cm in sorted(set(heights)):
+            squared = (cm / 100) ** 2
+            table.append(f"| {cm:.1f} cm | {18.5 * squared:.1f} kg to under {25 * squared:.1f} kg |")
+        answer = "For **adults aged 20+**, these weights correspond to the CDC healthy-weight BMI range. BMI is a screening measure.\n\n"
+        answer += "\n".join(table)
+        return sourced(answer + "\n\nRanges are rounded.", "CDC adult BMI categories", BMI_URL,
+                       "Adult healthy-weight BMI is 18.5 to below 25. Multiply each BMI boundary by height in metres squared to calculate the weight boundaries.")
+    if not (re.search(BMI_TERM, q) or (re.search(WEIGHT, q) and re.search(HEIGHT_CUE, q))):
+        prior = previous.lower()
+        if not (re.search(WEIGHT, prior) and re.search(HEIGHT_CUE, prior)
+                and re.fullmatch(r"(?:i am |age[: ]*)?\d{1,3}(?: years? old)?[.!]?", q)):
             return None
         q = previous.lower() + " age " + re.search(r"\d+", q).group()
     if re.search(r"\d\s*[,\.]\s*\d\s*(?:height|feet|ft)", q):
         return clarify("Does 5,3 / 5.3 mean 5 feet 3 inches or decimal feet? Write height as 160 cm or 5 ft 3 in, plus weight in kg and age.")
-    weight = re.search(r"(\d+(?:\.\d+)?)\s*(?:kg|kilograms?)\b", q)
+    weight = re.search(WEIGHT, q)
     metric = re.search(r"(\d+(?:\.\d+)?)\s*(cm|centimeters?|metres?|meters?|m)\b", q)
     imperial = re.search(r"(\d+)\s*(?:ft|feet|foot|['′])\s*(\d{1,2})?\s*(?:inches|inch|in|[\"″])?", q)
     age_match = re.search(r"(?:age[d]?\s*[:=]?\s*|i am\s+)(\d{1,3})\b|(\d{1,3})\s*(?:years? old|yo)\b", q)

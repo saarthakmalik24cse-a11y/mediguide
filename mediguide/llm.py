@@ -1,4 +1,5 @@
 import re
+from urllib.parse import urlparse
 from abc import ABC, abstractmethod
 
 import requests
@@ -44,12 +45,16 @@ class OpenAICompatibleLLM(LLM):
         messages = [{"role": "system", "content": SYSTEM + "\nRespond in " + answer_language.get() + ". Preserve medicine names, units, source labels, and numbers exactly. Give practical next steps only if supported by context. If only part is answerable explicitly say which part is missing."}]
         messages.extend(history[-6:])
         messages.append({"role": "user", "content": f"Route: {route}\nContext:\n{context_text(results)}\n\nQuestion: {question}"})
+        local = urlparse(settings.llm_base_url).hostname in {"127.0.0.1", "localhost", "::1"}
         response = requests.post(
             f"{settings.llm_base_url.rstrip('/')}/chat/completions",
             headers={"Authorization": f"Bearer {settings.llm_api_key}", "Content-Type": "application/json"},
-            json={"model": settings.llm_model, "messages": messages, "temperature": 0.1}, timeout=60)
+            json={"model": settings.llm_model, "messages": messages}, timeout=300 if local else 90)
         response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
+        answer = response.json()["choices"][0]["message"]["content"]
+        if not isinstance(answer, str) or not answer.strip():
+            raise ValueError("The model returned no text answer")
+        return answer
 
 
 class ExtractiveLLM(LLM):

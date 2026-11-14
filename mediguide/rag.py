@@ -8,7 +8,7 @@ import requests
 from .dosage import dosage_response
 from .questions import normalize_question, is_medical_dose_question
 from .answer_checks import check_answer
-from .answer_intent import evidence_sentences
+from .answer_intent import evidence_sentences, medicine_overview
 
 
 class RAGService:
@@ -17,7 +17,8 @@ class RAGService:
         self.store = VectorStore(route)
         self.llm = get_llm()
 
-    def ask(self, question: str, history: list[dict] | None = None, k: int | None = None, source: str | None = None) -> dict:
+    def ask(self, question: str, history: list[dict] | None = None, k: int | None = None,
+            source: str | None = None, *, fast: bool = False) -> dict:
         question = normalize_question(question)
         if not question or len(question) > 2000:
             return {"answer": "Please ask one focused question between 1 and 2,000 characters.",
@@ -25,6 +26,10 @@ class RAGService:
         urgent = emergency_message(question)
         if urgent:
             return {"answer": urgent, "citations": [], "results": [], "emergency": True}
+        if self.route in {"medical", "medication"} and source is None:
+            overview = medicine_overview(question)
+            if overview is not None:
+                return overview
         if self.route == "medical" and source is None:
             from .health_tools import bmi_chat, cut_answer
             from .common_health import common_answer
@@ -36,6 +41,13 @@ class RAGService:
             if len(sources) > 1:
                 return {"answer": "Please choose one document under Choose your sources → Search within. Multiple documents are available; I should not combine different patient records or policy versions.",
                         "citations": [], "results": [], "emergency": False, "abstained": True, "notice": "Select the document you want this answer to use."}
+        if self.route == "lab":
+            from .lab_review import report_overview
+            chunks = [chunk for chunk in self.store.chunks if source is None or chunk.source == source]
+            if chunks:
+                overview = report_overview(question, chunks)
+                if overview is not None:
+                    return overview
         dose_answer = dosage_response(question, source)
         if dose_answer and self.route != "insurance":
             return dose_answer
@@ -48,15 +60,16 @@ class RAGService:
             results = [r for r in results if re.search(r"\b\d+(?:\.\d+)?\s*(mg|mcg|ml|units|tablets?)\b", r.chunk.text, re.I)
                        and re.search(r"\b(dose|dosage|daily|twice|once|every|take|administer)\b", r.chunk.text, re.I)]
         notice = ""
+        answerer = ExtractiveLLM() if fast else self.llm
         if not results:
             answer = "I could not find enough relevant evidence in the selected sources. Try a more specific question or upload a document that covers it."
         else:
             try:
-                answer = self.llm.answer(retrieval_query, results, history or [], self.route)
+                answer = answerer.answer(retrieval_query, results, history or [], self.route)
             except (requests.RequestException, KeyError, IndexError, ValueError):
                 answer = ExtractiveLLM().answer(retrieval_query, results, [], self.route)
                 notice = "The language service is unavailable; showing source excerpts instead."
-            if not isinstance(self.llm, ExtractiveLLM) and not check_answer(answer, results):
+            if not isinstance(answerer, ExtractiveLLM) and not check_answer(answer, results):
                 answer = ExtractiveLLM().answer(retrieval_query, results, [], self.route)
                 notice = "Showing source excerpts because generated citations or numbers could not be verified against the cited evidence."
         citations = [{"label": f"S{i}", "source": r.chunk.source, "page": r.chunk.page,

@@ -14,6 +14,16 @@ CARDS = {
 
 def common_answer(question: str) -> dict | None:
     q = question.lower()
+    if re.search(r"\bfever\b", q) and re.search(r"\bcough\w*\b", q) and re.search(r"\b(?:what to do|what should|high fever|help)\b", q):
+        emergency = bool(re.search(r"trouble breathing|shortness of breath|chest pain|confusion", q))
+        text = ("Trouble breathing, persistent chest pain or new confusion calls for emergency care. "
+                "Contact a healthcare provider promptly if you are at higher risk of severe respiratory illness "
+                "or if fever or cough improves and then returns or worsens. Take precautions to avoid spreading illness. "
+                "What is the measured temperature, how long have symptoms lasted, and how old is the person?")
+        if emergency:
+            text = "Seek emergency medical care now for the warning sign you described. " + text
+        return sourced(text, "CDC respiratory illnesses", "https://www.cdc.gov/respiratory-viruses/about/",
+                       "CDC recommends prompt care for people at higher risk and emergency care for warning signs. Warning signs differ by age.", emergency)
     if re.search(r"(?:basic|common) (?:illness|illnesses|diseases|health problems)", q):
         return sourced("Examples of common health problems include colds, headaches and diarrhoea. Ask about one—for example, 'What can I do for a common cold?'—to see basic care and warning signs. Symptoms can have different causes; this list does not diagnose you.", "NHS common cold", CARDS["cold"][2], CARDS["cold"][3])
     for pattern, title, url, text in CARDS.values():

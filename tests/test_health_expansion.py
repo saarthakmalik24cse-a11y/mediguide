@@ -1,6 +1,34 @@
 import math
 import pytest
 from mediguide.health_tools import bmi_answer, bmi_chat, bmi_value, cut_answer
+
+
+def test_uploaded_lab_overview_with_general_question(tmp_path, monkeypatch):
+    from pathlib import Path
+    from streamlit.testing.v1 import AppTest
+    from mediguide import privacy
+
+    monkeypatch.setattr(privacy, "index_path", lambda route: tmp_path / "indexes")
+    monkeypatch.setattr(privacy, "database_path", lambda: tmp_path / "history.db")
+    filename = "synthetic_lab_report.pdf"
+    pdf = Path("data/samples", filename).read_bytes()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=20).run()
+    app.button(key="nav_Lab report explainer").click().run()
+    app.file_uploader(key="upload_lab").upload(filename, pdf, "application/pdf").run()
+    app.button(key="index_lab").click().run()
+    assert app.selectbox(key="source_lab").value == filename
+    app.chat_input(key="chat_lab").set_value("now explain my report what all things i have to improve").run()
+    assert not app.exception
+    reply = app.session_state["messages"][f"lab:{filename}"][-1]
+    assert "1 of 3 readable results" in reply["content"]
+    assert "11.2 g/dL" in reply["content"]
+    assert len(reply["citations"]) == 3
+    assert all(cite["source"] == filename and cite["page"] == 1 for cite in reply["citations"])
+    app.button(key="blood_demo").click().run()
+    next(box for box in app.checkbox if box.key and box.key.startswith("blood_check_")).check().run()
+    next(button for button in app.button if button.label == "Use verified report in chat").click().run()
+    assert not app.exception
+    assert app.selectbox(key="source_lab").value.startswith("Reviewed: Synthetic")
 from mediguide.lab_review import parse_rows, compare, diet_notes, DEMO
 from mediguide.rag import RAGService
 
@@ -29,6 +57,21 @@ def test_bmi_age_pregnancy_and_boundary():
 
 def test_bmi_followup():
     assert "healthy-weight range" in bmi_chat("22", [{"role":"user","content":"BMI for 55 kg 160 cm"}])["answer"]
+
+
+def test_compact_bmi_conversation_routes_before_retrieval():
+    from mediguide.rag import RAGService
+
+    service = RAGService("medical")
+    question = "healthy bmi range"
+    assert "18.5 to below 25" in service.ask(question)["answer"]
+    measurements = "90kg and 5feet 6 inches"
+    result = service.ask(measurements, [{"role": "user", "content": question}])
+    assert "32.0" in result["answer"]
+    assert "What is your age" in result["answer"]
+    assert result["citations"][0]["source"] == "CDC adult BMI categories"
+    result = service.ask("22", [{"role": "user", "content": measurements}])
+    assert "obesity range" in result["answer"]
 
 
 def test_cut_first_aid_not_prescription():

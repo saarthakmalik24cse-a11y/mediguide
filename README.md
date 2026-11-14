@@ -155,3 +155,9 @@ Read [ADVANCED_SETUP.md](ADVANCED_SETUP.md) for configuration and limits.
 Google credentials, an LLM API, and OCR language resources are external setup requirements;
 none are bundled or claimed to have been clinically validated.
 
+# Run with free local AI on Windows
+
+MediGuide can answer using the bundled sources without an API key. On a fresh checkout, run `setup_mediguide.bat`, then `run_mediguide.bat` and open http://127.0.0.1:8502/.
+
+For optional generated summaries, install and open [Ollama for Windows](https://ollama.com/download/windows), then run `connect_local_ai.bat`. It downloads Qwen3 4B (about 2.5 GB) if needed and saves local settings after the connection test succeeds. Keep Ollama running and restart MediGuide. In chat, enable **Write a fuller answer with local AI** when you want a generated explanation. Local mode uses no paid API.
+

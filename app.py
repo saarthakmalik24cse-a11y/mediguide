@@ -1,5 +1,6 @@
 import json
 import uuid
+from urllib.parse import urlparse
 
 import pandas as pd
 import streamlit as st
@@ -12,6 +13,10 @@ from mediguide.rag import RAGService
 from mediguide.safety import disclaimer
 from mediguide.vectorstore import VectorStore
 from mediguide.release import VERSION, readiness
+
+LOCAL_MODEL = settings.llm_provider == "openai-compatible" and urlparse(
+    settings.llm_base_url
+).hostname in {"127.0.0.1", "localhost", "::1"}
 
 st.set_page_config(page_title="MediGuide • Your care, made clearer", page_icon=":material/spa:", layout="centered")
 from mediguide.privacy import gate
@@ -81,7 +86,7 @@ def ingest(upload, route: str) -> tuple[int, int]:
     pages = extract_pdf(data)
     chunks = chunk_pages(pages, upload.name, route, settings.chunk_size, settings.chunk_overlap)
     if not chunks:
-        raise ValueError("No readable text was found. Scanned PDFs need OCR, which is not included in this MVP.")
+        raise ValueError("This PDF has no readable text for chat. Upload a searchable PDF. For a scanned blood report, use the scan and review tool on Lab results.")
     added = VectorStore(route).replace_source(chunks)
     log_document(upload.name, route, len(pages), added)
     return len(pages), added
@@ -95,6 +100,9 @@ def render_upload(route: str, label: str = "Upload a PDF") -> None:
             with st.spinner("Reading your document…"):
                 pages, chunks = ingest(upload, route)
             st.session_state[f"source_{route}"] = upload.name
+            st.session_state.messages.pop(f"{route}:{upload.name}", None)
+            if route == "insurance":
+                st.session_state.pop("policy_checklist", None)
             st.success(f"Your {pages}-page document is ready. Ask a question below.")
         except Exception as exc:
             st.error(str(exc))
@@ -121,12 +129,18 @@ def render_chat(route: str, starter: str) -> None:
     from mediguide.llm import answer_language, get_llm, ExtractiveLLM
     language = st.selectbox("Answer language", ["English", "Hindi", "Hinglish"], key="language_" + route)
     answer_language.set(language)
+    fast = LOCAL_MODEL and not st.toggle(
+        "Write a fuller answer with local AI", value=language != "English",
+        key=f"local_detail_{route}_{language}",
+        help="Off shows quick excerpts with citations. On writes a summary and may take longer.",
+    )
     if language != "English" and isinstance(get_llm(), ExtractiveLLM):
         st.info("Hindi/Hinglish explanations need a configured language model. Offline mode keeps original English evidence; some common Hindi question phrases are supported.")
     st.caption(f"MediGuide {VERSION} · Check the cited evidence before acting")
     if route == "medication":
         st.caption("Drug sources may describe a specific brand or combination product. Check the ingredients and formulation in the original label; do not treat it as a personal prescription.")
-    sources = sorted({c.source for c in VectorStore(route).chunks})
+    service = RAGService(route)
+    sources = sorted({c.source for c in service.store.chunks})
     with st.container(border=True):
         selected = st.selectbox("Search within", ["All sources"] + sources, key=f"source_{route}")
         st.caption("One patient or policy at a time. Select the exact document when more than one is available." if route in {"patient", "lab", "discharge", "insurance"} else "Answers are limited to the reference library, not a live web search.")
@@ -139,7 +153,7 @@ def render_chat(route: str, starter: str) -> None:
     messages = st.session_state.messages.setdefault(key, [])
     if source:
         with st.expander("Preview selected document"):
-            parts = [c for c in VectorStore(route).chunks if c.source == source]
+            parts = [c for c in service.store.chunks if c.source == source]
             for part in parts:
                 st.caption(f"Page {part.page}" if part.page else "Reference excerpt")
                 st.text(part.text)
@@ -167,8 +181,9 @@ def render_chat(route: str, starter: str) -> None:
         history = [{"role": m["role"], "content": m["content"]} for m in messages[-7:-1]]
         with st.chat_message("assistant"):
             try:
-                with st.spinner("Reviewing the relevant sources…"):
-                    result = RAGService(route).ask(question, history, source=source)
+                status = "Finding cited excerpts…" if fast else "Preparing your answer…"
+                with st.spinner(status, show_time=True):
+                    result = service.ask(question, history, source=source, fast=fast)
             except Exception as exc:
                 st.error("The answer could not be generated. Please check the local server window and try again.")
                 st.caption(f"Technical detail: {type(exc).__name__}: {exc}")
@@ -219,7 +234,7 @@ def claim_checklist() -> None:
         if selected == "All sources":
             st.info("Choose one policy under Search within first.")
         else:
-            result = RAGService("insurance").ask("Which claim documents must I submit for reimbursement and what is the deadline?", source=selected)
+            result = RAGService("insurance").ask("Which claim documents must I submit for reimbursement and what is the deadline?", source=selected, fast=True)
             st.session_state["policy_checklist"] = (selected, result["answer"], result["citations"])
     saved = st.session_state.get("policy_checklist")
     if saved and saved[0] == st.session_state.get("source_insurance"):
